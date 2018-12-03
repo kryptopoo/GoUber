@@ -1,0 +1,26 @@
+.fab {
+  margin: 0px;
+  top: auto;
+  right: 20px;
+  bottom: 20px;
+  left: auto;
+  position: fixed !important;
+}
+
+.distance-result {
+  text-align: right;
+}
+
+
+th, td {
+  padding: 5px !important;
+  word-break: break-all;
+}
+
+th, td.route {
+  width: 50% !important;
+}
+
+th, td.passenger {
+  width: 25% !important;
+}
