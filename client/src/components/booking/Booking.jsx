@@ -179,7 +179,7 @@ class Booking extends Component {
 		this.setState({ newBook: newBook }, () => {
 			let distance = _this.calculateDistance();
 			let newBook = _this.state.newBook;
-			newBook.distance = parseFloat(distance.toFixed(8));
+			newBook.distance = parseFloat(distance.toFixed(2));
 			newBook.totalCost = parseFloat((newBook.distance * newBook.costPerKm).toFixed(8));
 			_this.setState({ newBook: newBook });
 		});
@@ -194,7 +194,7 @@ class Booking extends Component {
 		this.setState({ newBook: newBook }, () => {
 			let distance = _this.calculateDistance();
 			let newBook = _this.state.newBook;
-			newBook.distance = parseFloat(distance.toFixed(8));
+			newBook.distance = parseFloat(distance.toFixed(2));
 			newBook.totalCost = parseFloat((newBook.distance * newBook.costPerKm).toFixed(8));
 			_this.setState({ newBook: newBook });
 		});
@@ -205,6 +205,15 @@ class Booking extends Component {
 	};
 
 	onNewBookingClicked = () => {
+		let newBook = this.state.newBook;
+		newBook = {
+			originLocation: "",
+			destLocation: "",
+			distance: 0,
+			totalCost: 0,
+			costPerKm: 0.1
+		}
+		this.setState({ newBook: newBook });
 		this.setState({ openNewBookingDialog: true });
 	};
 
@@ -242,7 +251,6 @@ class Booking extends Component {
 
 
 	onCancelBooking = (bookingIndex) => {
-		debugger;
 		let _this = this;
 		let contract = this.contracts.GoUber;
 		contract.deployed().then(function (instance) {
@@ -281,7 +289,7 @@ class Booking extends Component {
 			<div>
 				<AppBar position="static">
 					<Toolbar>
-						<Typography variant="h5" align="center" color="textPrimary">
+						<Typography variant="h5" align="center" color="secondary" >
 							Booking
             </Typography>
 					</Toolbar>
@@ -305,7 +313,7 @@ class Booking extends Component {
 										</TableCell>
 										<TableCell className="passenger">
 											{book.passengerInfo.split(";")[0]} <br />
-											{book.passengerInfo.split(";")[1]} 
+											{book.passengerInfo.split(";")[1]}
 											{/* {book.passengerAddress} */}
 										</TableCell>
 										<TableCell>
@@ -316,12 +324,12 @@ class Booking extends Component {
 											>
 												{book.status}
 											</Button>
-											<Button size="small" color="secondary"
+											<Button size="small" color="secondary" className="btn-cancel"
 												style={this.state.user.type === "passenger" && book.status === "new" ? {} : { display: 'none' }}
 												onClick={() => { this.onCancelBooking(book.id) }} >
 												Cancel
                       </Button>
-											<Button size="small" color="primary"
+											<Button size="small" color="primary" className="btn-accept"
 												style={this.state.user.type === "driver" && book.status === "new" ? {} : { display: 'none' }}
 												onClick={() => { this.onAcceptBooking(book.id) }}>
 												Accept
@@ -344,18 +352,18 @@ class Booking extends Component {
 					<AddIcon />
 				</Fab>
 
-				<Dialog open={this.state.openNewBookingDialog} onClose={this.onNewBookingClosed} aria-labelledby="form-dialog-title">
+				<Dialog open={this.state.openNewBookingDialog} onClose={this.onNewBookingClosed} disableBackdropClick="true" aria-labelledby="form-dialog-title">
 					<DialogTitle id="form-dialog-title">Booking</DialogTitle>
 					<DialogContent>
 						<DialogContentText>
-							To book a trip, please enter your locations
+							To book a trip, please enter your locations...
             </DialogContentText>
 						<LocationSearchInput id="origin-search" searchLabel="Pickup..." callbackFromParent={this.searchOriginCallback} ></LocationSearchInput>
 						<LocationSearchInput id="destination-search" searchLabel="Destination..." callbackFromParent={this.searchDestinationCallback}></LocationSearchInput>
 						<div className="distance-result">
-							<div> Distance: {this.state.newBook.distance} Km</div>
-							<div> Fee: {this.state.newBook.distance} /Km</div>
-							<div> Total Cost: {this.state.newBook.totalCost} </div>
+							<div> Distance: <span className="number-label">{this.state.newBook.distance}</span><span className="unit">Km</span></div>
+							<div> Fee: <span className="number-label">{this.state.newBook.costPerKm} </span><span className="unit">/Km</span></div>
+							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit"></span></div>
 						</div>
 
 					</DialogContent>

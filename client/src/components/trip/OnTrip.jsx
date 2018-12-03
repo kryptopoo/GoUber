@@ -110,7 +110,6 @@ class OnTrip extends Component {
 	contracts = {};
 
 	onCompleteBooking = () => {
-		debugger;
 		let _this = this;
 		let bookingIndex = this.state.booking.id;
 		let contract = this.contracts.GoUber;
@@ -132,7 +131,7 @@ class OnTrip extends Component {
 			<div>
 				<AppBar position="static">
 					<Toolbar>
-						<Typography variant="h5" align="center" color="textPrimary">
+						<Typography variant="h5" align="center" color="secondary">
 							You are on Trip
             </Typography>
 					</Toolbar>
@@ -183,12 +182,12 @@ class OnTrip extends Component {
 						</TableBody>
 					</Table>
 				</Paper>
-				<Button variant="contained" color="secondary" fullWidth onClick={this.onCompleteBooking} disabled={this.state.user.type === "driver"}>
+				<Button variant="contained" color="primary" fullWidth onClick={this.onCompleteBooking} disabled={this.state.user.type === "driver"}>
 					Complete Trip
         </Button>
 
 				{/* completed trip dialog */}
-				<Dialog open={this.state.openDialog} onClose={this.onDialogClosed} aria-labelledby="form-dialog-title">
+				<Dialog open={this.state.openDialog} onClose={this.onDialogClosed} disableBackdropClick="true" aria-labelledby="form-dialog-title">
 					<DialogTitle id="form-dialog-title">End Trip</DialogTitle>
 					<DialogContent>
 						<DialogContentText>

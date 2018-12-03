@@ -8,7 +8,19 @@
 }
 
 .distance-result {
+  margin-top: 10px;
   text-align: right;
+}
+
+.distance-result .number-label{
+  display: inline-block;
+  width: 60px;
+  font-weight: bold;
+}
+
+.distance-result .unit{
+  display: inline-block;
+  width: 40px;
 }
 
 
@@ -24,3 +36,11 @@ th, td.route {
 th, td.passenger {
   width: 25% !important;
 }
+
+.btn-cancel {
+ color: red !important;
+}
+
+.btn-accept {
+  color: green !important;
+ }
