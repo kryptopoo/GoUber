@@ -25,7 +25,10 @@ import TruffleContract from 'truffle-contract'
 import GoUberJson from '../../contracts/GoUber.json';
 import css from '../../css/Booking.css';
 
-const ether = 10 ** 18;
+// define units
+const currency = "ether";
+const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
+const pricePerKm = 0.1; 	// 0.1 ether
 
 class Booking extends Component {
 	constructor(props) {
@@ -117,9 +120,9 @@ class Booking extends Component {
 		});
 	}
 
-	// componentDidMount() {
-	// 	let _this = this;
-	// }
+	componentDidMount() {
+		document.title = "GoUber - " + this.state.user.type.toUpperCase();
+	}
 
 	contracts = {};
 
@@ -136,7 +139,7 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			costPerKm: 0.1
+			pricePerKm: 0.1
 		},
 		books: []
 	};
@@ -180,7 +183,7 @@ class Booking extends Component {
 			let distance = _this.calculateDistance();
 			let newBook = _this.state.newBook;
 			newBook.distance = parseFloat(distance.toFixed(2));
-			newBook.totalCost = parseFloat((newBook.distance * newBook.costPerKm).toFixed(8));
+			newBook.totalCost = parseFloat((newBook.distance * newBook.pricePerKm).toFixed(8));
 			_this.setState({ newBook: newBook });
 		});
 	};
@@ -195,7 +198,7 @@ class Booking extends Component {
 			let distance = _this.calculateDistance();
 			let newBook = _this.state.newBook;
 			newBook.distance = parseFloat(distance.toFixed(2));
-			newBook.totalCost = parseFloat((newBook.distance * newBook.costPerKm).toFixed(8));
+			newBook.totalCost = parseFloat((newBook.distance * newBook.pricePerKm).toFixed(8));
 			_this.setState({ newBook: newBook });
 		});
 	};
@@ -211,7 +214,7 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			costPerKm: 0.1
+			pricePerKm: 0.1
 		}
 		this.setState({ newBook: newBook });
 		this.setState({ openNewBookingDialog: true });
@@ -222,7 +225,7 @@ class Booking extends Component {
 
 		// validation
 		if (_this.state.newBook.originLocation === "" || _this.state.newBook.destLocation === ""
-			|| _this.state.newBook.distance === 0 || _this.state.newBook.costPerKm === 0) return;
+			|| _this.state.newBook.distance === 0 || _this.state.newBook.pricePerKm === 0) return;
 
 		let web3 = this.props.web3;
 		let contract = this.contracts.GoUber;
@@ -233,15 +236,15 @@ class Booking extends Component {
 
 			// create booking
 			var senderAccount = accounts[0];
-			var ether = 10 ** 18; // 1 ether = 1000000000000000000 wei
+			//var ether = 10 ** 18; 
 			var amount = _this.state.newBook.totalCost * ether;
 			var distance = _this.state.newBook.distance;
-			var gas = 1000000;
+			//var gas = 1000000;
 			contract.deployed().then(function (instance) {
 				return instance.createBooking(_this.state.user.name + ";" + _this.state.user.phone,
 					_this.state.newBook.originLocation, _this.state.newBook.destLocation,
 					distance, amount,
-					{ from: senderAccount, value: amount, gas: gas });
+					{ from: senderAccount, value: amount});
 			}).then(function (result) {
 			}).catch(function (err) {
 				console.log(err.message);
@@ -316,8 +319,8 @@ class Booking extends Component {
 											{book.passengerInfo.split(";")[1]}
 											{/* {book.passengerAddress} */}
 										</TableCell>
-										<TableCell>
-											Cost: {(book.totalCost / ether).toFixed(2)} <br />
+										<TableCell className="cost">
+											{(book.totalCost / ether).toFixed(2)} {currency}<br />
 											{/* {book.status} */}
 											<Button disabled={book.status === "cancelled" || book.status === "completed"}
 												style={book.status !== "new" ? {} : { display: 'none' }}
@@ -352,7 +355,7 @@ class Booking extends Component {
 					<AddIcon />
 				</Fab>
 
-				<Dialog open={this.state.openNewBookingDialog} onClose={this.onNewBookingClosed} disableBackdropClick="true" aria-labelledby="form-dialog-title">
+				<Dialog open={this.state.openNewBookingDialog} onClose={this.onNewBookingClosed} disableBackdropClick aria-labelledby="form-dialog-title">
 					<DialogTitle id="form-dialog-title">Booking</DialogTitle>
 					<DialogContent>
 						<DialogContentText>
@@ -362,8 +365,8 @@ class Booking extends Component {
 						<LocationSearchInput id="destination-search" searchLabel="Destination..." callbackFromParent={this.searchDestinationCallback}></LocationSearchInput>
 						<div className="distance-result">
 							<div> Distance: <span className="number-label">{this.state.newBook.distance}</span><span className="unit">Km</span></div>
-							<div> Fee: <span className="number-label">{this.state.newBook.costPerKm} </span><span className="unit">/Km</span></div>
-							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit"></span></div>
+							<div> Fee: <span className="number-label">{this.state.newBook.pricePerKm} </span><span className="unit">{currency}/Km</span></div>
+							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit">{currency}</span></div>
 						</div>
 
 					</DialogContent>

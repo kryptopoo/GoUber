@@ -20,6 +20,12 @@ import Typography from '@material-ui/core/Typography';
 import { withWeb3 } from 'react-web3-provider';
 import TruffleContract from 'truffle-contract'
 import GoUberJson from '../../contracts/GoUber.json';
+import css from '../../css/Trip.css';
+
+// define units
+const currency = "ether";
+const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
+const pricePerKm = 0.1; 	// 0.1 ether
 
 class OnTrip extends Component {
 	constructor(props) {
@@ -107,6 +113,10 @@ class OnTrip extends Component {
 		},
 	};
 
+	componentDidMount() {
+		document.title = "GoUber - " + this.state.user.type;
+	}
+
 	contracts = {};
 
 	onCompleteBooking = () => {
@@ -172,12 +182,12 @@ class OnTrip extends Component {
 								</TableCell>
 							</TableRow>
 							<TableRow>
-								<TableCell>Cost</TableCell>
-								<TableCell>{this.state.booking.totalCost}</TableCell>
+								<TableCell>Total Cost</TableCell>
+								<TableCell>{(this.state.booking.totalCost / ether).toFixed(2)} {currency}</TableCell>
 							</TableRow>
 							<TableRow>
 								<TableCell>Status</TableCell>
-								<TableCell>{this.state.booking.status}</TableCell>
+								<TableCell><span className="status">{this.state.booking.status}</span></TableCell>
 							</TableRow>
 						</TableBody>
 					</Table>
@@ -187,7 +197,7 @@ class OnTrip extends Component {
         </Button>
 
 				{/* completed trip dialog */}
-				<Dialog open={this.state.openDialog} onClose={this.onDialogClosed} disableBackdropClick="true" aria-labelledby="form-dialog-title">
+				<Dialog open={this.state.openDialog} onClose={this.onDialogClosed} disableBackdropClick aria-labelledby="form-dialog-title">
 					<DialogTitle id="form-dialog-title">End Trip</DialogTitle>
 					<DialogContent>
 						<DialogContentText>
