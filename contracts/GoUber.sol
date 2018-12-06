@@ -1,6 +1,4 @@
-pragma solidity ^0.4.4;
-pragma experimental ABIEncoderV2;
-
+pragma solidity ^0.4.24;
 
 contract GoUber {
  
@@ -92,7 +90,7 @@ contract GoUber {
         Booking memory booking = bookingList[index];
 
         // validation
-        require(booking.driverAddress == 0x0 && compareStrings(booking.status, "new"));
+        require(booking.driverAddress == 0x0000000000000000000000000000000000000000 && compareStrings(booking.status, "new"));
     
         booking.driverAddress = msg.sender;
         booking.driverInfo = driverInfo;
@@ -119,11 +117,11 @@ contract GoUber {
         emit BookingCompleted(index);
     }
 
-    function compareStrings(string memory a, string memory b) internal returns (bool) {
+    function compareStrings(string memory a, string memory b) internal pure returns (bool) {
         if(bytes(a).length != bytes(b).length) {
             return false;
         } else {
-            return keccak256(a) == keccak256(b);
+            return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
         }
     }
 }

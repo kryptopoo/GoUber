@@ -6,6 +6,11 @@ module.exports = {
       host: "127.0.0.1",
       port: 7545,
       network_id: "*" // Match any network id
-    }
+    },
+    // development: {
+    //   host: "https://testnet-rpc.gochain.io",
+    //   port: 80,
+    //   network_id: "*" // Match any network id
+    // }
   }
 };
