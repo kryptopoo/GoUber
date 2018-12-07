@@ -58,14 +58,16 @@ class Booking extends Component {
 		// handling events
 		let contract = this.contracts.GoUber;
 		contract.deployed().then(function (instance) {
-			let events = instance.allEvents();
+			let events = instance.allEvents({toBlock: 'latest'});
 			events.watch((err, result) => {
 				if (result.event === "BookingCreated") {
 					_this.setState({ openNewBookingDialog: false });
 					_this.loadBookingList();
+					console.log("BookingCreated", result)
 				}
 				if (result.event === "BookingCancelled") {
-					_this.loadBookingList();
+					_this.updateBookingStatus(result.args.bookingIndex, "cancelled");
+					console.log("BookingCancelled", result)
 				}
 				if (result.event === "BookingAccepted") {
 					//events.stopWatching();
@@ -83,15 +85,57 @@ class Booking extends Component {
 		});
 	}
 
+	contracts = {};
+
+	state = {
+		openNewBookingDialog: false,
+		user: {
+			name: sessionStorage.getItem("name"),
+			phone: sessionStorage.getItem("phone"),
+			type: sessionStorage.getItem("type"),
+			account: ""
+		},
+		newBook: {
+			originLocation: "",
+			destLocation: "",
+			distance: 0,
+			totalCost: 0,
+			pricePerKm: 0.1
+		},
+		books: []
+	};
+
 	loadBookingList = () => {
 		let _this = this;
+		_this.setState({ books: [] });
+		_this.reqBookingList();
+		
+	}
+
+	updateBookingStatus = (index, status) => {
+		let _this = this;
+		let books = _this.state.books;
+		if (books[index] !== undefined){
+			books[index].status = status;
+			_this.setState({ books: books });
+		}
+	
+	}
+
+	reqBookingList = () => {
+		let _this = this;
 		let contract = this.contracts.GoUber;
-		contract.deployed().then(function (instance) {
-			_this.setState({ books: [] });
+		contract.deployed().then(function (instance) {			
 			return instance.getBookingCount();
 		}).then(function (result) {
 			for (let i = 0; i < result; i++) {
 				let index = i;
+				// _this.getBookingByIndex(index, function(){
+				// 	let books = _this.state.books;
+				// 	books.push(book);
+				// 	_this.setState({ books: books });
+				// });
+
 				contract.deployed().then(function (instance) {
 					return instance.getBooking(index);
 				}).then(function (bookDetail) {
@@ -120,29 +164,34 @@ class Booking extends Component {
 		});
 	}
 
+	// getBookingByIndex = (index, callback) => {
+	// 	contract.deployed().then(function (instance) {
+	// 		return instance.getBooking(index);
+	// 	}).then(function (bookDetail) {
+	// 		let book = {
+	// 			id: index,
+	// 			passengerAddress: bookDetail[0].toString(),
+	// 			passengerInfo: bookDetail[1].toString(),
+	// 			driverAddress: bookDetail[2].toString(),
+	// 			driverInfo: bookDetail[3].toString(),
+	// 			createdAt: parseFloat(bookDetail[4]),
+	// 			originLocation: bookDetail[5].toString(),
+	// 			destLocation: bookDetail[6].toString(),
+	// 			totalCost: parseFloat(bookDetail[7]),
+	// 			//passengerPaid: parseFloat(bookDetail[8]),
+	// 			status: bookDetail[8].toString()
+	// 		}
+	// 		callback(book);
+	// 	}).catch(function (err) {
+	// 		console.log(err);
+	// 	});
+	// }
+
 	componentDidMount() {
 		document.title = "GoUber - " + this.state.user.type.toUpperCase();
 	}
 
-	contracts = {};
-
-	state = {
-		openNewBookingDialog: false,
-		user: {
-			name: sessionStorage.getItem("name"),
-			phone: sessionStorage.getItem("phone"),
-			type: sessionStorage.getItem("type"),
-			account: ""
-		},
-		newBook: {
-			originLocation: "",
-			destLocation: "",
-			distance: 0,
-			totalCost: 0,
-			pricePerKm: 0.1
-		},
-		books: []
-	};
+	
 
 	calculateDistance = () => {
 		if (this.state.newBook.originLocation === "" || this.state.newBook.destLocation === "")

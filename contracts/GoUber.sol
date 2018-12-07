@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 contract GoUber {
- 
     struct Booking {
         address passengerAddress;
         string passengerInfo;
@@ -15,8 +14,7 @@ contract GoUber {
         string status; // new, cancelled, accepted, ontrip, completed
     }
    
-    Booking[] bookingList;
-    uint public bookingCount;
+    Booking[] bookings;
 
     // declare events
     event BookingCreated(uint bookingIndex);
@@ -27,93 +25,89 @@ contract GoUber {
     // passenger can create a booking
     function createBooking(string memory passengerInfo, string memory originLocation, string memory destLocation, uint distance, uint totalCost) 
         public payable {
-
         // validation
         require(msg.value == totalCost && distance > 0 && totalCost > 0);
 
-        Booking memory booking;
-        booking.passengerAddress = msg.sender;
-        booking.passengerInfo = passengerInfo;
-        //booking.driverAddress = 0x0;
-        booking.driverInfo = "";
-        booking.createdAt = block.timestamp;
-        booking.originLocation = originLocation;
-        booking.destLocation = destLocation;
-        booking.totalCost = totalCost;
-        booking.passengerPaid = totalCost;
-        booking.status = "new";
+        // Booking memory booking;
+        // booking.passengerAddress = msg.sender;
+        // booking.passengerInfo = passengerInfo;
+        // //booking.driverAddress = 0x0;
+        // booking.driverInfo = "";
+        // booking.createdAt = block.timestamp;
+        // booking.originLocation = originLocation;
+        // booking.destLocation = destLocation;
+        // booking.totalCost = totalCost;
+        // booking.passengerPaid = totalCost;
+        // booking.status = "new";
+        // bookings.push(booking);
 
-        bookingList.push(booking);
+        bookings.push(Booking(msg.sender, passengerInfo, 0x0000000000000000000000000000000000000000, "", block.timestamp, originLocation, destLocation, totalCost, totalCost, "new"));
 
-        emit BookingCreated(bookingList.length);
+        emit BookingCreated(bookings.length);
     }
 
     function getBooking(uint index) public view returns (address, string memory, address, string memory,
         uint, string memory, string memory, uint, string memory) {
-
-        Booking memory booking = bookingList[index];
+        Booking memory book = bookings[index];
         return (
-            booking.passengerAddress,
-            booking.passengerInfo,
-            booking.driverAddress,
-            booking.driverInfo,
-            booking.createdAt,
-            booking.originLocation,
-            booking.destLocation,
-            booking.totalCost,
-            booking.status
+            book.passengerAddress,
+            book.passengerInfo,
+            book.driverAddress,
+            book.driverInfo,
+            book.createdAt,
+            book.originLocation,
+            book.destLocation,
+            book.totalCost,
+            book.status
         );
     }
 
+    // function getBooking(uint index) public view returns (address, string memory, address, string memory,
+    //     string memory, string memory, uint, string memory) {
+    //     return (
+    //         bookings[index].passengerAddress,
+    //         bookings[index].passengerInfo,
+    //         bookings[index].driverAddress,
+    //         bookings[index].driverInfo,
+    //         bookings[index].originLocation,
+    //         bookings[index].destLocation,
+    //         bookings[index].totalCost,
+    //         bookings[index].status
+    //     );
+    // }
+
     function getBookingCount() public view returns(uint) {
-        return bookingList.length;
+        return bookings.length;
     }
   
     // passenger can cancel booking, cost will be refund
-    function cancelBooking(uint index) public payable {
-        Booking memory booking = bookingList[index];
-
+    function cancelBooking(uint index) public {
         // validation
-        require(msg.sender == booking.passengerAddress && compareStrings(booking.status, "new"));
-       
-        booking.passengerAddress.transfer(booking.passengerPaid);
-        booking.passengerPaid = 0;
-        booking.status = "cancelled";
-
-        bookingList[index] = booking;
-
+        require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "new"));
+        bookings[index].passengerAddress.transfer(bookings[index].passengerPaid);
+        bookings[index].passengerPaid = 0;
+        bookings[index].status = "cancelled";
+        bookings[index] = bookings[index];
         emit BookingCancelled(index);
     }
 
     // driver accepts booking created from passenger
     function acceptBooking(uint index, string memory driverInfo) public {
-        Booking memory booking = bookingList[index];
-
         // validation
-        require(booking.driverAddress == 0x0000000000000000000000000000000000000000 && compareStrings(booking.status, "new"));
-    
-        booking.driverAddress = msg.sender;
-        booking.driverInfo = driverInfo;
-        booking.status = "ontrip"; 
-
-        bookingList[index] = booking;
-
+        require(bookings[index].driverAddress == 0x0000000000000000000000000000000000000000 && compareStrings(bookings[index].status, "new"));
+        bookings[index].driverAddress = msg.sender;
+        bookings[index].driverInfo = driverInfo;
+        bookings[index].status = "ontrip"; 
         emit BookingAccepted(index);
     }
 
     // passenger must to confirm trip completed
     function completeBooking(uint index) public {
-        Booking memory booking = bookingList[index];
-
-        // validation
-        require(msg.sender == booking.passengerAddress && compareStrings(booking.status, "ontrip"));
-       
-        booking.driverAddress.transfer(booking.passengerPaid);
-        booking.status = "completed";
-        booking.passengerPaid = 0;
-
-        bookingList[index] = booking;
-		
+        // // validation
+        require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "ontrip"));
+        bookings[index].driverAddress.transfer(bookings[index].passengerPaid);
+        bookings[index].status = "completed";
+        bookings[index].passengerPaid = 0;
         emit BookingCompleted(index);
     }
 
