@@ -10,11 +10,10 @@ contract GoUber {
         string originLocation;
         string destLocation;
         uint totalCost;
-        uint passengerPaid;
         string status; // new, cancelled, accepted, ontrip, completed
     }
    
-    Booking[] bookings;
+    Booking[] internal bookings;
 
     // declare events
     event BookingCreated(uint bookingIndex);
@@ -23,25 +22,14 @@ contract GoUber {
     event BookingCancelled(uint bookingIndex);
    
     // passenger can create a booking
-    function createBooking(string memory passengerInfo, string memory originLocation, string memory destLocation, uint distance, uint totalCost) 
+    function createBooking(string memory passengerInfo, string memory originLocation, string memory destLocation) 
         public payable {
         // validation
-        require(msg.value == totalCost && distance > 0 && totalCost > 0);
+        //require(msg.value == totalCost && distance > 0 && totalCost > 0, "validation failed.");
 
-        // Booking memory booking;
-        // booking.passengerAddress = msg.sender;
-        // booking.passengerInfo = passengerInfo;
-        // //booking.driverAddress = 0x0;
-        // booking.driverInfo = "";
-        // booking.createdAt = block.timestamp;
-        // booking.originLocation = originLocation;
-        // booking.destLocation = destLocation;
-        // booking.totalCost = totalCost;
-        // booking.passengerPaid = totalCost;
-        // booking.status = "new";
-        // bookings.push(booking);
-
-        bookings.push(Booking(msg.sender, passengerInfo, 0x0000000000000000000000000000000000000000, "", block.timestamp, originLocation, destLocation, totalCost, totalCost, "new"));
+        bookings.push(Booking(
+            msg.sender, passengerInfo, address(0x0), "", block.timestamp,
+            originLocation, destLocation, msg.value, "new"));
 
         emit BookingCreated(bookings.length);
     }
@@ -62,20 +50,6 @@ contract GoUber {
         );
     }
 
-    // function getBooking(uint index) public view returns (address, string memory, address, string memory,
-    //     string memory, string memory, uint, string memory) {
-    //     return (
-    //         bookings[index].passengerAddress,
-    //         bookings[index].passengerInfo,
-    //         bookings[index].driverAddress,
-    //         bookings[index].driverInfo,
-    //         bookings[index].originLocation,
-    //         bookings[index].destLocation,
-    //         bookings[index].totalCost,
-    //         bookings[index].status
-    //     );
-    // }
-
     function getBookingCount() public view returns(uint) {
         return bookings.length;
     }
@@ -83,18 +57,16 @@ contract GoUber {
     // passenger can cancel booking, cost will be refund
     function cancelBooking(uint index) public {
         // validation
-        require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "new"));
-        bookings[index].passengerAddress.transfer(bookings[index].passengerPaid);
-        bookings[index].passengerPaid = 0;
+        require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "new"), "validation failed.");
+        bookings[index].passengerAddress.transfer(address(this).balance);
         bookings[index].status = "cancelled";
-        bookings[index] = bookings[index];
         emit BookingCancelled(index);
     }
 
     // driver accepts booking created from passenger
     function acceptBooking(uint index, string memory driverInfo) public {
         // validation
-        require(bookings[index].driverAddress == 0x0000000000000000000000000000000000000000 && compareStrings(bookings[index].status, "new"));
+        require(bookings[index].driverAddress == address(0x0) && compareStrings(bookings[index].status, "new"), "validation failed.");
         bookings[index].driverAddress = msg.sender;
         bookings[index].driverInfo = driverInfo;
         bookings[index].status = "ontrip"; 
@@ -104,10 +76,9 @@ contract GoUber {
     // passenger must to confirm trip completed
     function completeBooking(uint index) public {
         // // validation
-        require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "ontrip"));
-        bookings[index].driverAddress.transfer(bookings[index].passengerPaid);
+        require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "ontrip"), "validation failed.");
+        bookings[index].driverAddress.transfer(address(this).balance);
         bookings[index].status = "completed";
-        bookings[index].passengerPaid = 0;
         emit BookingCompleted(index);
     }
 

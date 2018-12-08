@@ -26,9 +26,9 @@ import GoUberJson from '../../contracts/GoUber.json';
 import css from '../../css/Booking.css';
 
 // define units
-const currency = "ether";
+const currency = "GO";
 const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
-const pricePerKm = 0.1; 	// 0.1 ether
+const pricePerKm = 0.05; 	// 0.1 ether
 
 class Booking extends Component {
 	constructor(props) {
@@ -100,7 +100,7 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			pricePerKm: 0.1
+			pricePerKm: pricePerKm
 		},
 		books: []
 	};
@@ -130,11 +130,6 @@ class Booking extends Component {
 		}).then(function (result) {
 			for (let i = 0; i < result; i++) {
 				let index = i;
-				// _this.getBookingByIndex(index, function(){
-				// 	let books = _this.state.books;
-				// 	books.push(book);
-				// 	_this.setState({ books: books });
-				// });
 
 				contract.deployed().then(function (instance) {
 					return instance.getBooking(index);
@@ -149,7 +144,6 @@ class Booking extends Component {
 						originLocation: bookDetail[5].toString(),
 						destLocation: bookDetail[6].toString(),
 						totalCost: parseFloat(bookDetail[7]),
-						//passengerPaid: parseFloat(bookDetail[8]),
 						status: bookDetail[8].toString()
 					}
 					let books = _this.state.books;
@@ -164,34 +158,9 @@ class Booking extends Component {
 		});
 	}
 
-	// getBookingByIndex = (index, callback) => {
-	// 	contract.deployed().then(function (instance) {
-	// 		return instance.getBooking(index);
-	// 	}).then(function (bookDetail) {
-	// 		let book = {
-	// 			id: index,
-	// 			passengerAddress: bookDetail[0].toString(),
-	// 			passengerInfo: bookDetail[1].toString(),
-	// 			driverAddress: bookDetail[2].toString(),
-	// 			driverInfo: bookDetail[3].toString(),
-	// 			createdAt: parseFloat(bookDetail[4]),
-	// 			originLocation: bookDetail[5].toString(),
-	// 			destLocation: bookDetail[6].toString(),
-	// 			totalCost: parseFloat(bookDetail[7]),
-	// 			//passengerPaid: parseFloat(bookDetail[8]),
-	// 			status: bookDetail[8].toString()
-	// 		}
-	// 		callback(book);
-	// 	}).catch(function (err) {
-	// 		console.log(err);
-	// 	});
-	// }
-
 	componentDidMount() {
 		document.title = "GoUber - " + this.state.user.type.toUpperCase();
 	}
-
-	
 
 	calculateDistance = () => {
 		if (this.state.newBook.originLocation === "" || this.state.newBook.destLocation === "")
@@ -263,7 +232,7 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			pricePerKm: 0.1
+			pricePerKm: pricePerKm
 		}
 		this.setState({ newBook: newBook });
 		this.setState({ openNewBookingDialog: true });
@@ -292,7 +261,6 @@ class Booking extends Component {
 			contract.deployed().then(function (instance) {
 				return instance.createBooking(_this.state.user.name + ";" + _this.state.user.phone,
 					_this.state.newBook.originLocation, _this.state.newBook.destLocation,
-					distance, amount,
 					{ from: senderAccount, value: amount});
 			}).then(function (result) {
 			}).catch(function (err) {
@@ -324,17 +292,6 @@ class Booking extends Component {
 			console.log(err.message);
 		});
 	};
-
-	// onCompleteBooking = (bookingIndex) => {
-	// 	let _this = this;
-	// 	let contract = this.contracts.GoUber;
-	// 	contract.deployed().then(function (instance) {
-	// 		return instance.completeBooking(bookingIndex, { from: _this.state.user.account });
-	// 	}).then(function (result) {
-	// 	}).catch(function (err) {
-	// 		console.log(err.message);
-	// 	});
-	// };
 
 	render() {
 		return (
@@ -386,11 +343,6 @@ class Booking extends Component {
 												onClick={() => { this.onAcceptBooking(book.id) }}>
 												Accept
                       </Button>
-											{/* <Button size="small" color="primary"
-												// style={this.state.user.type === "driver" ? {} : { display: 'none' }} 
-												onClick={() => { this.onCompleteBooking(book.id) }}>
-												Complete
-                      </Button> */}
 										</TableCell>
 									</TableRow>
 								);
@@ -417,7 +369,6 @@ class Booking extends Component {
 							<div> Fee: <span className="number-label">{this.state.newBook.pricePerKm} </span><span className="unit">{currency}/Km</span></div>
 							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit">{currency}</span></div>
 						</div>
-
 					</DialogContent>
 					<DialogActions>
 						<Button onClick={this.onNewBookingClosed} color="primary">

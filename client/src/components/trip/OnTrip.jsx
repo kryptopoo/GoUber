@@ -23,9 +23,9 @@ import GoUberJson from '../../contracts/GoUber.json';
 import css from '../../css/Trip.css';
 
 // define units
-const currency = "ether";
+const currency = "GO";
 const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
-const pricePerKm = 0.1; 	// 0.1 ether
+const pricePerKm = 0.01; 	// 0.1 ether
 
 class OnTrip extends Component {
 	constructor(props) {

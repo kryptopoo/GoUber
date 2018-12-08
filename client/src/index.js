@@ -28,7 +28,7 @@ ReactDOM.render(
   (
     <MuiThemeProvider theme={theme}>
       <Web3Provider 
-        defaultProvider={(cb) => cb(new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545")))}
+        defaultProvider={(cb) => cb(new Web3(new Web3.providers.HttpProvider("https://testnet-rpc.gochain.io")))}
         loading="Loading..."
         error={(err) => `Connection error: ${err.message}`}
       >
