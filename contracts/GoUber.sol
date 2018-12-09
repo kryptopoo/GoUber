@@ -24,8 +24,6 @@ contract GoUber {
     // passenger can create a booking
     function createBooking(string memory passengerInfo, string memory originLocation, string memory destLocation) 
         public payable {
-        // validation
-        //require(msg.value == totalCost && distance > 0 && totalCost > 0, "validation failed.");
 
         bookings.push(Booking(
             msg.sender, passengerInfo, address(0x0), "", block.timestamp,
