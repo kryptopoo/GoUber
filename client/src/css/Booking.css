@@ -1,3 +1,7 @@
+body {
+  line-height: 1.8;
+}
+
 .fab {
   margin: 0px;
   top: auto;
@@ -7,8 +11,26 @@
   position: fixed !important;
 }
 
+.booking-time {
+  font-size: 90%;
+}
+
 .distance-result {
+  margin-top: 10px;
   text-align: right;
+}
+
+.distance-result .number-label{
+  display: inline-block;
+  width: 70px;
+  font-weight: bold;
+}
+
+.distance-result .unit{
+  display: inline-block;
+  width: 65px;
+  font-size: 90%;
+  text-align: right !important;
 }
 
 
@@ -17,10 +39,31 @@ th, td {
   word-break: break-all;
 }
 
+th {
+  font-size: 100% !important;
+}
+
 th, td.route {
-  width: 50% !important;
+  width: 45% !important;
 }
 
 th, td.passenger {
-  width: 25% !important;
+  width: 30% !important;
 }
+
+th, td.cost {
+  text-align: center;
+}
+
+th, td.cost button {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.btn-cancel {
+ color: red !important;
+}
+
+.btn-accept {
+  color: green !important;
+ }

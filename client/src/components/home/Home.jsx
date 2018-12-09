@@ -49,7 +49,7 @@ class Home extends Component {
         <p>&nbsp;</p>
         <p>Please make sure that your account is already connected via Meta Mask. </p>
         <p>Your account:</p>
-        <p>{this.state.account ? this.state.account : "N/A"}</p>
+        <p>{this.state.account ? this.state.account : "Not Found"}</p>
         <p>Click <a className="Home-link" href="" onClick={this.onGoClicked}>GO</a> to start app...</p>
       </div>
     );

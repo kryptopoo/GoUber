@@ -24,8 +24,12 @@ import { withWeb3 } from 'react-web3-provider';
 import TruffleContract from 'truffle-contract'
 import GoUberJson from '../../contracts/GoUber.json';
 import css from '../../css/Booking.css';
+import { myConfig } from '../../config.js';
 
-const ether = 10 ** 18;
+// // define units
+// const currency = "GO";
+// const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
+// const pricePerKm = 0.05; 	// 0.1 ether
 
 class Booking extends Component {
 	constructor(props) {
@@ -55,14 +59,16 @@ class Booking extends Component {
 		// handling events
 		let contract = this.contracts.GoUber;
 		contract.deployed().then(function (instance) {
-			let events = instance.allEvents();
+			let events = instance.allEvents({toBlock: 'latest'});
 			events.watch((err, result) => {
 				if (result.event === "BookingCreated") {
 					_this.setState({ openNewBookingDialog: false });
 					_this.loadBookingList();
+					console.log("BookingCreated", result)
 				}
 				if (result.event === "BookingCancelled") {
-					_this.loadBookingList();
+					_this.updateBookingStatus(result.args.bookingIndex, "cancelled");
+					console.log("BookingCancelled", result)
 				}
 				if (result.event === "BookingAccepted") {
 					//events.stopWatching();
@@ -80,47 +86,6 @@ class Booking extends Component {
 		});
 	}
 
-	loadBookingList = () => {
-		let _this = this;
-		let contract = this.contracts.GoUber;
-		contract.deployed().then(function (instance) {
-			_this.setState({ books: [] });
-			return instance.getBookingCount();
-		}).then(function (result) {
-			for (let i = 0; i < result; i++) {
-				let index = i;
-				contract.deployed().then(function (instance) {
-					return instance.getBooking(index);
-				}).then(function (bookDetail) {
-					let book = {
-						id: i,
-						passengerAddress: bookDetail[0].toString(),
-						passengerInfo: bookDetail[1].toString(),
-						driverAddress: bookDetail[2].toString(),
-						driverInfo: bookDetail[3].toString(),
-						createdAt: parseFloat(bookDetail[4]),
-						originLocation: bookDetail[5].toString(),
-						destLocation: bookDetail[6].toString(),
-						totalCost: parseFloat(bookDetail[7]),
-						//passengerPaid: parseFloat(bookDetail[8]),
-						status: bookDetail[8].toString()
-					}
-					let books = _this.state.books;
-					books.push(book);
-					_this.setState({ books: books });
-				}).catch(function (err) {
-					console.log(err);
-				});
-			}
-		}).catch(function (err) {
-			console.log(err);
-		});
-	}
-
-	// componentDidMount() {
-	// 	let _this = this;
-	// }
-
 	contracts = {};
 
 	state = {
@@ -136,10 +101,71 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			costPerKm: 0.1
+			pricePerKm: myConfig.pricePerKm
 		},
 		books: []
 	};
+
+	loadBookingList = () => {
+		let _this = this;
+		_this.setState({ books: [] });
+		_this.reqBookingList();
+		
+	}
+
+	updateBookingStatus = (index, status) => {
+		let _this = this;
+		let books = _this.state.books;
+		if (books[index] !== undefined){
+			books[index].status = status;
+			_this.setState({ books: books });
+		}
+	
+	}
+
+	reqBookingList = () => {
+		let _this = this;
+		let contract = this.contracts.GoUber;
+		contract.deployed().then(function (instance) {			
+			return instance.getBookingCount();
+		}).then(function (result) {
+			for (let i = 0; i < result; i++) {
+				let index = i;
+
+				contract.deployed().then(function (instance) {
+					return instance.getBooking(index);
+				}).then(function (bookDetail) {
+					let book = {
+						id: i,
+						passengerAddress: bookDetail[0].toString(),
+						passengerInfo: bookDetail[1].toString(),
+						driverAddress: bookDetail[2].toString(),
+						driverInfo: bookDetail[3].toString(),
+						createdAt: parseFloat(bookDetail[4]),
+						originLocation: bookDetail[5].toString(),
+						destLocation: bookDetail[6].toString(),
+						totalCost: parseFloat(bookDetail[7]),
+						status: bookDetail[8].toString()
+					}
+					let books = _this.state.books;
+					books.push(book);
+					_this.setState({ books: books });
+				}).catch(function (err) {
+					console.log(err);
+				});
+			}
+		}).catch(function (err) {
+			console.log(err);
+		});
+	}
+
+	componentDidMount() {
+		document.title = "GoUber - " + this.state.user.type.toUpperCase();
+		const script = document.createElement("script");
+		script.src = "https://maps.googleapis.com/maps/api/js?key=" + myConfig.googleApiKey + "&libraries=places";
+    script.async = true;
+		document.body.appendChild(script);
+	}
 
 	calculateDistance = () => {
 		if (this.state.newBook.originLocation === "" || this.state.newBook.destLocation === "")
@@ -179,8 +205,8 @@ class Booking extends Component {
 		this.setState({ newBook: newBook }, () => {
 			let distance = _this.calculateDistance();
 			let newBook = _this.state.newBook;
-			newBook.distance = parseFloat(distance.toFixed(8));
-			newBook.totalCost = parseFloat((newBook.distance * newBook.costPerKm).toFixed(8));
+			newBook.distance = parseFloat(distance.toFixed(2));
+			newBook.totalCost = parseFloat((newBook.distance * newBook.pricePerKm).toFixed(8));
 			_this.setState({ newBook: newBook });
 		});
 	};
@@ -194,8 +220,8 @@ class Booking extends Component {
 		this.setState({ newBook: newBook }, () => {
 			let distance = _this.calculateDistance();
 			let newBook = _this.state.newBook;
-			newBook.distance = parseFloat(distance.toFixed(8));
-			newBook.totalCost = parseFloat((newBook.distance * newBook.costPerKm).toFixed(8));
+			newBook.distance = parseFloat(distance.toFixed(2));
+			newBook.totalCost = parseFloat((newBook.distance * newBook.pricePerKm).toFixed(8));
 			_this.setState({ newBook: newBook });
 		});
 	};
@@ -205,6 +231,15 @@ class Booking extends Component {
 	};
 
 	onNewBookingClicked = () => {
+		let newBook = this.state.newBook;
+		newBook = {
+			originLocation: "",
+			destLocation: "",
+			distance: 0,
+			totalCost: 0,
+			pricePerKm: myConfig.pricePerKm
+		}
+		this.setState({ newBook: newBook });
 		this.setState({ openNewBookingDialog: true });
 	};
 
@@ -213,7 +248,7 @@ class Booking extends Component {
 
 		// validation
 		if (_this.state.newBook.originLocation === "" || _this.state.newBook.destLocation === ""
-			|| _this.state.newBook.distance === 0 || _this.state.newBook.costPerKm === 0) return;
+			|| _this.state.newBook.distance === 0 || _this.state.newBook.pricePerKm === 0) return;
 
 		let web3 = this.props.web3;
 		let contract = this.contracts.GoUber;
@@ -224,15 +259,14 @@ class Booking extends Component {
 
 			// create booking
 			var senderAccount = accounts[0];
-			var ether = 10 ** 18; // 1 ether = 1000000000000000000 wei
-			var amount = _this.state.newBook.totalCost * ether;
+			//var ether = 10 ** 18; 
+			var amount = _this.state.newBook.totalCost * myConfig.etherWeiRate;
 			var distance = _this.state.newBook.distance;
-			var gas = 1000000;
+			//var gas = 1000000;
 			contract.deployed().then(function (instance) {
 				return instance.createBooking(_this.state.user.name + ";" + _this.state.user.phone,
 					_this.state.newBook.originLocation, _this.state.newBook.destLocation,
-					distance, amount,
-					{ from: senderAccount, value: amount, gas: gas });
+					{ from: senderAccount, value: amount});
 			}).then(function (result) {
 			}).catch(function (err) {
 				console.log(err.message);
@@ -242,7 +276,6 @@ class Booking extends Component {
 
 
 	onCancelBooking = (bookingIndex) => {
-		debugger;
 		let _this = this;
 		let contract = this.contracts.GoUber;
 		contract.deployed().then(function (instance) {
@@ -265,23 +298,12 @@ class Booking extends Component {
 		});
 	};
 
-	// onCompleteBooking = (bookingIndex) => {
-	// 	let _this = this;
-	// 	let contract = this.contracts.GoUber;
-	// 	contract.deployed().then(function (instance) {
-	// 		return instance.completeBooking(bookingIndex, { from: _this.state.user.account });
-	// 	}).then(function (result) {
-	// 	}).catch(function (err) {
-	// 		console.log(err.message);
-	// 	});
-	// };
-
 	render() {
 		return (
 			<div>
 				<AppBar position="static">
 					<Toolbar>
-						<Typography variant="h5" align="center" color="textPrimary">
+						<Typography variant="h5" align="center" color="secondary" >
 							Booking
             </Typography>
 					</Toolbar>
@@ -301,36 +323,32 @@ class Booking extends Component {
 									<TableRow key={book.id}>
 										<TableCell className="route" >
 											{book.originLocation.split(";")[2]} <br />
-											{book.destLocation.split(";")[2]}
+											{book.destLocation.split(";")[2]} <br />
+											<span className="booking-time">{new Date(book.createdAt * 1000).toISOString()}</span>
 										</TableCell>
 										<TableCell className="passenger">
 											{book.passengerInfo.split(";")[0]} <br />
-											{book.passengerInfo.split(";")[1]} 
+											{book.passengerInfo.split(";")[1]}
 											{/* {book.passengerAddress} */}
 										</TableCell>
-										<TableCell>
-											Cost: {(book.totalCost / ether).toFixed(2)} <br />
+										<TableCell className="cost">
+											{(book.totalCost / myConfig.etherWeiRate).toFixed(2)} {myConfig.currency}<br />
 											{/* {book.status} */}
 											<Button disabled={book.status === "cancelled" || book.status === "completed"}
 												style={book.status !== "new" ? {} : { display: 'none' }}
 											>
 												{book.status}
 											</Button>
-											<Button size="small" color="secondary"
+											<Button size="small" color="secondary" className="btn-cancel"
 												style={this.state.user.type === "passenger" && book.status === "new" ? {} : { display: 'none' }}
 												onClick={() => { this.onCancelBooking(book.id) }} >
 												Cancel
                       </Button>
-											<Button size="small" color="primary"
+											<Button size="small" color="primary" className="btn-accept"
 												style={this.state.user.type === "driver" && book.status === "new" ? {} : { display: 'none' }}
 												onClick={() => { this.onAcceptBooking(book.id) }}>
 												Accept
                       </Button>
-											{/* <Button size="small" color="primary"
-												// style={this.state.user.type === "driver" ? {} : { display: 'none' }} 
-												onClick={() => { this.onCompleteBooking(book.id) }}>
-												Complete
-                      </Button> */}
 										</TableCell>
 									</TableRow>
 								);
@@ -344,20 +362,19 @@ class Booking extends Component {
 					<AddIcon />
 				</Fab>
 
-				<Dialog open={this.state.openNewBookingDialog} onClose={this.onNewBookingClosed} aria-labelledby="form-dialog-title">
+				<Dialog open={this.state.openNewBookingDialog} onClose={this.onNewBookingClosed} disableBackdropClick aria-labelledby="form-dialog-title">
 					<DialogTitle id="form-dialog-title">Booking</DialogTitle>
 					<DialogContent>
 						<DialogContentText>
-							To book a trip, please enter your locations
+							To book a trip, please enter your locations...
             </DialogContentText>
 						<LocationSearchInput id="origin-search" searchLabel="Pickup..." callbackFromParent={this.searchOriginCallback} ></LocationSearchInput>
 						<LocationSearchInput id="destination-search" searchLabel="Destination..." callbackFromParent={this.searchDestinationCallback}></LocationSearchInput>
 						<div className="distance-result">
-							<div> Distance: {this.state.newBook.distance} Km</div>
-							<div> Fee: {this.state.newBook.distance} /Km</div>
-							<div> Total Cost: {this.state.newBook.totalCost} </div>
+							<div> Distance: <span className="number-label">{this.state.newBook.distance}</span><span className="unit">Km</span></div>
+							<div> Fee: <span className="number-label">{this.state.newBook.pricePerKm} </span><span className="unit">{myConfig.currency}/Km</span></div>
+							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit">{myConfig.currency}</span></div>
 						</div>
-
 					</DialogContent>
 					<DialogActions>
 						<Button onClick={this.onNewBookingClosed} color="primary">

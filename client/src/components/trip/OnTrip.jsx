@@ -20,6 +20,13 @@ import Typography from '@material-ui/core/Typography';
 import { withWeb3 } from 'react-web3-provider';
 import TruffleContract from 'truffle-contract'
 import GoUberJson from '../../contracts/GoUber.json';
+import css from '../../css/Trip.css';
+import { myConfig } from '../../config.js';
+
+// // define units
+// const currency = "GO";
+// const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
+// const pricePerKm = 0.01; 	// 0.1 ether
 
 class OnTrip extends Component {
 	constructor(props) {
@@ -107,10 +114,13 @@ class OnTrip extends Component {
 		},
 	};
 
+	componentDidMount() {
+		document.title = "GoUber - " + this.state.user.type;
+	}
+
 	contracts = {};
 
 	onCompleteBooking = () => {
-		debugger;
 		let _this = this;
 		let bookingIndex = this.state.booking.id;
 		let contract = this.contracts.GoUber;
@@ -132,7 +142,7 @@ class OnTrip extends Component {
 			<div>
 				<AppBar position="static">
 					<Toolbar>
-						<Typography variant="h5" align="center" color="textPrimary">
+						<Typography variant="h5" align="center" color="secondary">
 							You are on Trip
             </Typography>
 					</Toolbar>
@@ -173,22 +183,28 @@ class OnTrip extends Component {
 								</TableCell>
 							</TableRow>
 							<TableRow>
-								<TableCell>Cost</TableCell>
-								<TableCell>{this.state.booking.totalCost}</TableCell>
+								<TableCell>Booking Time</TableCell>
+								<TableCell>
+									{new Date(this.state.booking.createdAt * 1000).toISOString()}
+								</TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell>Total Cost</TableCell>
+								<TableCell>{(this.state.booking.totalCost / myConfig.etherWeiRate).toFixed(2)} {myConfig.currency}</TableCell>
 							</TableRow>
 							<TableRow>
 								<TableCell>Status</TableCell>
-								<TableCell>{this.state.booking.status}</TableCell>
+								<TableCell><span className="status">{this.state.booking.status}</span></TableCell>
 							</TableRow>
 						</TableBody>
 					</Table>
 				</Paper>
-				<Button variant="contained" color="secondary" fullWidth onClick={this.onCompleteBooking} disabled={this.state.user.type === "driver"}>
+				<Button variant="contained" color="primary" fullWidth onClick={this.onCompleteBooking} disabled={this.state.user.type === "driver"}>
 					Complete Trip
         </Button>
 
 				{/* completed trip dialog */}
-				<Dialog open={this.state.openDialog} onClose={this.onDialogClosed} aria-labelledby="form-dialog-title">
+				<Dialog open={this.state.openDialog} onClose={this.onDialogClosed} disableBackdropClick aria-labelledby="form-dialog-title">
 					<DialogTitle id="form-dialog-title">End Trip</DialogTitle>
 					<DialogContent>
 						<DialogContentText>

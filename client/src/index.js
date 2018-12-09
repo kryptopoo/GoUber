@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
 
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+
 import Web3 from 'web3';
 import Web3Provider from 'react-web3-provider';
 
@@ -12,25 +14,37 @@ import Start from './components/start/Start'
 import Booking from './components/booking/Booking'
 import OnTrip from './components/trip/OnTrip'
 
+import { myConfig } from './config.js';
+
 import * as serviceWorker from './serviceWorker';
+
+const palette = {
+  primary: { main: '#424242' },
+  secondary: { main: '#BDBDBD' }
+};
+const themeName = 'Tundora Silver Ostrich';
+
+const theme = createMuiTheme({ palette, themeName });
 
 ReactDOM.render(
   (
-    <Web3Provider 
-      defaultProvider={(cb) => cb(new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545")))}
-      loading="Loading..."
-      error={(err) => `Connection error: ${err.message}`}
-    >
-      <Router history = {browserHistory}>
-        <Route path = "/" >
-          <IndexRoute component = {Home} />
-          <Route path = "home" component = {Home} />
-          <Route path = "start" component = {Start} />
-          <Route path = "booking" component = {Booking} />
-          <Route path = "trip" component = {OnTrip} />
-        </Route>
-      </Router>
-    </Web3Provider>
+    <MuiThemeProvider theme={theme}>
+      <Web3Provider 
+        defaultProvider={(cb) => cb(new Web3(new Web3.providers.HttpProvider(myConfig.httpProviderHost)))}
+        loading="Loading..."
+        error={(err) => `Connection error: ${err.message}`}
+      >
+        <Router history = {browserHistory}>
+          <Route path = "/" >
+            <IndexRoute component = {Home} />
+            <Route path = "home" component = {Home} />
+            <Route path = "start" component = {Start} />
+            <Route path = "booking" component = {Booking} />
+            <Route path = "trip" component = {OnTrip} />
+          </Route>
+        </Router>
+      </Web3Provider>
+    </MuiThemeProvider>
   ),
   document.getElementById('root')
 )
