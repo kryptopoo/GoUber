@@ -24,11 +24,12 @@ import { withWeb3 } from 'react-web3-provider';
 import TruffleContract from 'truffle-contract'
 import GoUberJson from '../../contracts/GoUber.json';
 import css from '../../css/Booking.css';
+import { myConfig } from '../../config.js';
 
-// define units
-const currency = "GO";
-const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
-const pricePerKm = 0.05; 	// 0.1 ether
+// // define units
+// const currency = "GO";
+// const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
+// const pricePerKm = 0.05; 	// 0.1 ether
 
 class Booking extends Component {
 	constructor(props) {
@@ -100,7 +101,7 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			pricePerKm: pricePerKm
+			pricePerKm: myConfig.pricePerKm
 		},
 		books: []
 	};
@@ -160,6 +161,10 @@ class Booking extends Component {
 
 	componentDidMount() {
 		document.title = "GoUber - " + this.state.user.type.toUpperCase();
+		const script = document.createElement("script");
+		script.src = "https://maps.googleapis.com/maps/api/js?key=" + myConfig.googleApiKey + "&libraries=places";
+    script.async = true;
+		document.body.appendChild(script);
 	}
 
 	calculateDistance = () => {
@@ -232,7 +237,7 @@ class Booking extends Component {
 			destLocation: "",
 			distance: 0,
 			totalCost: 0,
-			pricePerKm: pricePerKm
+			pricePerKm: myConfig.pricePerKm
 		}
 		this.setState({ newBook: newBook });
 		this.setState({ openNewBookingDialog: true });
@@ -255,7 +260,7 @@ class Booking extends Component {
 			// create booking
 			var senderAccount = accounts[0];
 			//var ether = 10 ** 18; 
-			var amount = _this.state.newBook.totalCost * ether;
+			var amount = _this.state.newBook.totalCost * myConfig.etherWeiRate;
 			var distance = _this.state.newBook.distance;
 			//var gas = 1000000;
 			contract.deployed().then(function (instance) {
@@ -318,7 +323,8 @@ class Booking extends Component {
 									<TableRow key={book.id}>
 										<TableCell className="route" >
 											{book.originLocation.split(";")[2]} <br />
-											{book.destLocation.split(";")[2]}
+											{book.destLocation.split(";")[2]} <br />
+											<span className="booking-time">{new Date(book.createdAt * 1000).toISOString()}</span>
 										</TableCell>
 										<TableCell className="passenger">
 											{book.passengerInfo.split(";")[0]} <br />
@@ -326,7 +332,7 @@ class Booking extends Component {
 											{/* {book.passengerAddress} */}
 										</TableCell>
 										<TableCell className="cost">
-											{(book.totalCost / ether).toFixed(2)} {currency}<br />
+											{(book.totalCost / myConfig.etherWeiRate).toFixed(2)} {myConfig.currency}<br />
 											{/* {book.status} */}
 											<Button disabled={book.status === "cancelled" || book.status === "completed"}
 												style={book.status !== "new" ? {} : { display: 'none' }}
@@ -366,8 +372,8 @@ class Booking extends Component {
 						<LocationSearchInput id="destination-search" searchLabel="Destination..." callbackFromParent={this.searchDestinationCallback}></LocationSearchInput>
 						<div className="distance-result">
 							<div> Distance: <span className="number-label">{this.state.newBook.distance}</span><span className="unit">Km</span></div>
-							<div> Fee: <span className="number-label">{this.state.newBook.pricePerKm} </span><span className="unit">{currency}/Km</span></div>
-							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit">{currency}</span></div>
+							<div> Fee: <span className="number-label">{this.state.newBook.pricePerKm} </span><span className="unit">{myConfig.currency}/Km</span></div>
+							<div> Total Cost: <span className="number-label">{this.state.newBook.totalCost}</span><span className="unit">{myConfig.currency}</span></div>
 						</div>
 					</DialogContent>
 					<DialogActions>

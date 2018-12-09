@@ -58,7 +58,7 @@ contract GoUber {
     function cancelBooking(uint index) public {
         // validation
         require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "new"), "validation failed.");
-        bookings[index].passengerAddress.transfer(address(this).balance);
+        bookings[index].passengerAddress.transfer(bookings[index].totalCost);
         bookings[index].status = "cancelled";
         emit BookingCancelled(index);
     }
@@ -77,7 +77,7 @@ contract GoUber {
     function completeBooking(uint index) public {
         // // validation
         require(msg.sender == bookings[index].passengerAddress && compareStrings(bookings[index].status, "ontrip"), "validation failed.");
-        bookings[index].driverAddress.transfer(address(this).balance);
+        bookings[index].driverAddress.transfer(bookings[index].totalCost);
         bookings[index].status = "completed";
         emit BookingCompleted(index);
     }

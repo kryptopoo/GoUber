@@ -11,6 +11,10 @@ body {
   position: fixed !important;
 }
 
+.booking-time {
+  font-size: 90%;
+}
+
 .distance-result {
   margin-top: 10px;
   text-align: right;

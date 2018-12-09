@@ -14,6 +14,8 @@ import Start from './components/start/Start'
 import Booking from './components/booking/Booking'
 import OnTrip from './components/trip/OnTrip'
 
+import { myConfig } from './config.js';
+
 import * as serviceWorker from './serviceWorker';
 
 const palette = {
@@ -28,7 +30,7 @@ ReactDOM.render(
   (
     <MuiThemeProvider theme={theme}>
       <Web3Provider 
-        defaultProvider={(cb) => cb(new Web3(new Web3.providers.HttpProvider("https://testnet-rpc.gochain.io")))}
+        defaultProvider={(cb) => cb(new Web3(new Web3.providers.HttpProvider(myConfig.httpProviderHost)))}
         loading="Loading..."
         error={(err) => `Connection error: ${err.message}`}
       >

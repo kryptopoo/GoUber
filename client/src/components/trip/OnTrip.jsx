@@ -21,11 +21,12 @@ import { withWeb3 } from 'react-web3-provider';
 import TruffleContract from 'truffle-contract'
 import GoUberJson from '../../contracts/GoUber.json';
 import css from '../../css/Trip.css';
+import { myConfig } from '../../config.js';
 
-// define units
-const currency = "GO";
-const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
-const pricePerKm = 0.01; 	// 0.1 ether
+// // define units
+// const currency = "GO";
+// const ether = 10 ** 18;	// 1 ether = 1000000000000000000 wei
+// const pricePerKm = 0.01; 	// 0.1 ether
 
 class OnTrip extends Component {
 	constructor(props) {
@@ -182,8 +183,14 @@ class OnTrip extends Component {
 								</TableCell>
 							</TableRow>
 							<TableRow>
+								<TableCell>Booking Time</TableCell>
+								<TableCell>
+									{new Date(this.state.booking.createdAt * 1000).toISOString()}
+								</TableCell>
+							</TableRow>
+							<TableRow>
 								<TableCell>Total Cost</TableCell>
-								<TableCell>{(this.state.booking.totalCost / ether).toFixed(2)} {currency}</TableCell>
+								<TableCell>{(this.state.booking.totalCost / myConfig.etherWeiRate).toFixed(2)} {myConfig.currency}</TableCell>
 							</TableRow>
 							<TableRow>
 								<TableCell>Status</TableCell>
